@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="changelog-0.01-create-user-table" author="mashhood">
+        <createTable tableName="users">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="varchar(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_name" type="varchar(50)"/>
+            <column name="last_name" type="varchar(50)"/>
+            <column name="phone" type="varchar(20)"/>
+            <column name="address" type="varchar(200)"/>
+            <column name="role_id" type="int"/>
+            <column name="type" type="int"/>
+            <column name="active" type="boolean" defaultValueBoolean="true"/>
+            <column name="archive" type="boolean" defaultValueBoolean="false"/>
+            <column name="archived_by" type="bigint"/>
+            <column name="archived_at" type="timestamp"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="bigint"/>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="bigint"/>
+            <column name="business_id" type="bigint"/>
+            <column name="attributes" type="json">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="changelog-0.01-create-businesses-table" author="mashhood">
+        <!-- Create businesses table -->
+        <createTable tableName="businesses">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="varchar(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="varchar(200)"/>
+            <column name="active" type="boolean" defaultValueBoolean="true"/>
+            <column name="archive" type="boolean" defaultValueBoolean="false"/>
+            <column name="archived_by" type="bigint"/>
+            <column name="archived_at" type="timestamp"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="bigint"/>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="bigint"/>
+            <column name="business_id" type="bigint"/>
+            <column name="attributes" type="json">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="changelog-0.01-create-roles-table" author="mashhood">
+        <createTable tableName="roles">
+            <column name="role_id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="varchar(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="varchar(200)"/>
+            <column name="active" type="boolean" defaultValueBoolean="true"/>
+            <column name="archive" type="boolean" defaultValueBoolean="false"/>
+            <column name="archived_by" type="bigint"/>
+            <column name="archived_at" type="timestamp"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="bigint"/>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="bigint"/>
+            <column name="business_id" type="bigint"/>
+            <column name="attributes" type="json">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="changelog-0.01-create-privileges-table" author="mashhood">
+        <createTable tableName="privileges">
+            <column name="privilege_id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="secondarytitle" type="VARCHAR(255)"/>
+            <column name="description" type="TEXT"/>
+            <column name="parent_id" type="BIGINT"/>
+            <column name="erole" type="VARCHAR(50)"/>
+            <column name="active" type="boolean" defaultValueBoolean="true"/>
+            <column name="archive" type="boolean" defaultValueBoolean="false"/>
+            <column name="archived_by" type="bigint"/>
+            <column name="archived_at" type="timestamp"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="bigint"/>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="bigint"/>
+            <column name="business_id" type="bigint"/>
+            <column name="attributes" type="json">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="changelog-0.01-create-role_privilege-table" author="mashhood">
+        <createTable tableName="role_privilege">
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="privilege_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="role_privilege"
+                baseColumnNames="role_id"
+                referencedTableName="roles"
+                referencedColumnNames="role_id"
+                constraintName="fk_role_privilege_role"/>
+
+        <addForeignKeyConstraint
+                baseTableName="role_privilege"
+                baseColumnNames="privilege_id"
+                referencedTableName="privileges"
+                referencedColumnNames="privilege_id"
+                constraintName="fk_role_privilege_privilege"/>
+
+        <addUniqueConstraint
+                tableName="role_privilege"
+                columnNames="role_id, privilege_id"
+                constraintName="uk_role_privilege"/>
+
+        <createIndex tableName="role_privilege" indexName="idx_role_privilege_role_id">
+            <column name="role_id"/>
+        </createIndex>
+
+        <createIndex tableName="role_privilege" indexName="idx_role_privilege_privilege_id">
+            <column name="privilege_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="changelog-0.02-insert-user" author="mashhood">
+        <insert tableName="users">
+            <column name="id" value="1"/>
+            <column name="username" value="owner@tp.com"/>
+            <column name="email" value="owner@tp.com"/>
+            <column name="password" value="$2a$12$uqIN5BJ7EZ0RyUo6e3ZaluvQhIqAzXkwyuHCbZ9CGD0dE64JlNtjO"/>
+            <column name="first_name" value="System"/>
+            <column name="last_name" value="Owner"/>
+            <column name="role_id" value="1"/>
+            <column name="type" value="1"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="archive" valueBoolean="false"/>
+            <column name="business_id" value="1"/>
+            <column name="created_by" value="1"/>
+            <column name="updated_by" value="1"/>
+        </insert>
+    </changeSet>
+    <changeSet id="changelog-0.02-insert-businesses" author="mashhood">
+        <insert tableName="businesses">
+            <column name="id" value="1"/>
+            <column name="title" value="OWNER-BUSINESS"/>
+            <column name="description" value="Owner business"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="archive" valueBoolean="false"/>
+            <column name="created_at" valueDate="2025-08-04 16:39:41"/>
+            <column name="updated_at" valueDate="2025-08-04 16:39:41"/>
+            <column name="attributes" value="{}"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="changelog-0.02-insert-roles" author="mashhood">
+        <insert tableName="roles">
+            <column name="role_id" value="1"/>
+            <column name="title" value="OWNER"/>
+            <column name="description" value="System owner with full permissions"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="archive" valueBoolean="false"/>
+            <column name="business_id" value="1"/>
+            <column name="created_at" valueDate="2025-08-04 16:31:41"/>
+            <column name="updated_at" valueDate="2025-08-04 16:31:41"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="changelog-0.02-insert-privileges" author="mashhood">
+        <insert tableName="privileges">
+            <column name="privilege_id" value="100"/>
+            <column name="active" value="1"/>
+            <column name="business_id" value="1"/>
+            <column name="created_by" value="1"/>
+            <column name="erole" value="ROLE_USER_VIEW"/>
+            <column name="title" value="ROLE_USER_VIEW"/>
+            <column name="parent_id" valueComputed="NULL"/>
+        </insert>
+
+        <insert tableName="privileges">
+            <column name="privilege_id" value="101"/>
+            <column name="active" value="1"/>
+            <column name="business_id" value="1"/>
+            <column name="created_by" value="1"/>
+            <column name="erole" value="ROLE_USER_CREATE"/>
+            <column name="title" value="ROLE_USER_CREATE"/>
+            <column name="parent_id" valueComputed="100"/>
+        </insert>
+
+        <insert tableName="privileges">
+            <column name="privilege_id" value="102"/>
+            <column name="active" value="1"/>
+            <column name="business_id" value="1"/>
+            <column name="created_by" value="1"/>
+            <column name="erole" value="ROLE_USER_UPDATE"/>
+            <column name="title" value="ROLE_USER_UPDATE"/>
+            <column name="parent_id" valueComputed="100"/>
+        </insert>
+
+        <insert tableName="privileges">
+            <column name="privilege_id" value="103"/>
+            <column name="active" value="1"/>
+            <column name="business_id" value="1"/>
+            <column name="created_by" value="1"/>
+            <column name="erole" value="ROLE_USER_ARCHIVE"/>
+            <column name="title" value="ROLE_USER_ARCHIVE"/>
+            <column name="parent_id" valueComputed="100"/>
+        </insert>
+
+        <insert tableName="privileges">
+            <column name="privilege_id" value="104"/>
+            <column name="active" value="1"/>
+            <column name="business_id" value="1"/>
+            <column name="created_by" value="1"/>
+            <column name="erole" value="ROLE_USER_ACTIVE"/>
+            <column name="title" value="ROLE_USER_ACTIVE"/>
+            <column name="parent_id" valueComputed="100"/>
+        </insert>
+
+    </changeSet>
+
+    <changeSet id="changelog-0.02-insert-role-privilege" author="mashhood">
+        <sql>
+            INSERT INTO role_privilege (role_id, privilege_id)
+            VALUES (1, 100),
+                   (1, 101),
+                   (1, 102),
+                   (1, 103),
+                   (1, 104);
+        </sql>
+    </changeSet>
+</databaseChangeLog>

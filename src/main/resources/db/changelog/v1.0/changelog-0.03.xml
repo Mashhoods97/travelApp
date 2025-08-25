@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="changelog-0.03-insert-roles" author="mashhood">
+        <insert tableName="roles">
+            <column name="role_id" value="2"/>
+            <column name="title" value="RESELLER"/>
+            <column name="description" value="RESELLER DEFAULT ROLE"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="archive" valueBoolean="false"/>
+            <column name="business_id" value="1"/>
+        </insert>
+        <insert tableName="roles">
+            <column name="role_id" value="3"/>
+            <column name="title" value="HEAD"/>
+            <column name="description" value="HEAD DEFAULT ROLE"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="archive" valueBoolean="false"/>
+            <column name="business_id" value="1"/>
+        </insert>
+        <insert tableName="roles">
+            <column name="role_id" value="4"/>
+            <column name="title" value="MANAGER"/>
+            <column name="description" value="MANAGER DEFAULT ROLE"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="archive" valueBoolean="false"/>
+            <column name="business_id" value="1"/>
+        </insert>
+        <insert tableName="roles">
+            <column name="role_id" value="5"/>
+            <column name="title" value="SALES_MANAGER"/>
+            <column name="description" value="SALES_MANAGER DEFAULT ROLE"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="archive" valueBoolean="false"/>
+            <column name="business_id" value="1"/>
+        </insert>
+        <insert tableName="roles">
+            <column name="role_id" value="6"/>
+            <column name="title" value="CLIENT"/>
+            <column name="description" value="CLIENT DEFAULT ROLE"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="archive" valueBoolean="false"/>
+            <column name="business_id" value="1"/>
+        </insert>
+        <insert tableName="roles">
+            <column name="role_id" value="7"/>
+            <column name="title" value="CUSTOMER"/>
+            <column name="description" value="CUSTOMER DEFAULT ROLE"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="archive" valueBoolean="false"/>
+            <column name="business_id" value="1"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
