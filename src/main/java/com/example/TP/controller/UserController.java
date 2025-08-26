@@ -36,6 +36,12 @@ public class UserController {
         return userService.updateUser(userRequest, id, userDetails);
     }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('USER_ARCHIVE')")
+    public ResponseModel<?> archive(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        return userService.archiveUser(id, userDetails);
+    }
+
     @GetMapping("/paged")
     @PreAuthorize("hasRole('USER_VIEW')")
     public ResponseModel<PageResponse<UserResponse>> getAllUsers(

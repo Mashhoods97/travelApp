@@ -26,6 +26,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -137,10 +138,49 @@ public class UserService {
             User user = modelMapper.map(entity, User.class);
             BeanUtils.copyProperties(user, entityBefore, "id", "createdBy", "updatedBy", "updatedAt", "createdAt", "businessId", "password");
 
+            entityBefore.setUpdatedBy(creator.getId());
             userRepo.save(entityBefore);
             UserResponse response = modelMapper.map(entityBefore, UserResponse.class);
 
             log.info("User updated by {} (ID: {}) - user ID: {}",
+                    creator.getUsername(), creator.getId(), entityBefore.getId());
+
+            return successResponse(response);
+
+        } catch (SecurityException e) {
+            log.warn("Security violation: {}", e.getMessage());
+            return forbiddenResponse(e.getMessage());
+        } catch (GeneralException e) {
+            log.error("Business error: {}", e.getMessage());
+            return new ResponseModel<UserResponse>().failed(e.getHttpStatus().value(), e.getMessage());
+        } catch (Exception e) {
+            log.error("System error: {}", e.getMessage(), e);
+            return internalErrorResponse();
+        }
+    }
+
+    public ResponseModel<?> archiveUser(Long id, UserDetails userDetails) {
+        try {
+            // 1. Validate requesting user exists
+            User creator = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false)
+                    .orElseThrow(() -> {
+                        log.error("Access Denied - User not found: {}", userDetails.getUsername());
+                        return new SecurityException("Access Denied - User not found");
+                    });
+
+            User entityBefore = userRepo.findOptionalByIdAndArchiveFalse(id)
+                    .orElseThrow(() -> {
+                        log.error("Entity with ID '{}' not found for updating by user '{}'", id, userDetails.getUsername());
+                        return new GeneralException("Error updating entity :: Entity not found for updating.", HttpStatus.NOT_FOUND);
+                    });
+
+            entityBefore.setArchive(true);
+            entityBefore.setArchivedBy(creator.getId());
+            entityBefore.setArchivedAt(new Date());
+            userRepo.save(entityBefore);
+            UserResponse response = modelMapper.map(entityBefore, UserResponse.class);
+
+            log.info("User archived by {} (ID: {}) - user ID: {}",
                     creator.getUsername(), creator.getId(), entityBefore.getId());
 
             return successResponse(response);
