@@ -23,6 +23,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
@@ -63,20 +64,24 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Enable CORS
+                // Enable CORS and disable CSRF first
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // Disable CSRF
                 .csrf(AbstractHttpConfigurer::disable)
+
                 // Exception handling
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler)
                         .accessDeniedHandler(accessDeniedHandler))
+
                 // Session management
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 // Authorization
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/error").permitAll() // Allow error endpoint
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // If using Swagger
                         .anyRequest().authenticated()
                 );
 
@@ -90,17 +95,40 @@ public class WebSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allow requests from your frontend
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3001"));
+        // Allow requests from your frontend (add all environments)
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3002"    // React default
+        ));
 
-        // Allow all common HTTP methods
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // Allow all common HTTP methods including OPTIONS for preflight
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
 
-        // Allow all headers
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        // Allow all headers including authorization
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "X-Requested-With",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers",
+                "Cache-Control",
+                "x-auth-token"
+        ));
+
+        // Expose headers that frontend might need to read
+        configuration.setExposedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "Content-Disposition",
+                "x-auth-token"
+        ));
 
         // Allow credentials (cookies, authorization headers)
         configuration.setAllowCredentials(true);
+
+        // Set max age for preflight response caching (1 hour)
+        configuration.setMaxAge(3600L);
 
         // Apply this configuration to all paths
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

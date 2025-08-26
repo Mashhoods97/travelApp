@@ -2,15 +2,13 @@ package com.example.TP.controller;
 
 import com.example.TP.enums.ResponseEnum;
 import com.example.TP.payload.request.UserRequest;
+import com.example.TP.payload.response.PageResponse;
 import com.example.TP.payload.response.ResponseModel;
 import com.example.TP.payload.response.UserResponse;
-import com.example.TP.repository.UserRepo;
-import com.example.TP.service.BusinessService;
 import com.example.TP.service.UserService;
-import com.example.TP.utils.GeneralException;
 import lombok.extern.log4j.Log4j2;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,38 +22,33 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-    @Autowired
-    private BusinessService businessService;
-    @Autowired
-    private ModelMapper modelMapper;
-    @Autowired
-    private UserRepo userRepo;
 
 
     @PostMapping
     @PreAuthorize("hasRole('USER_CREATE')")
     public ResponseModel<?> create(@RequestBody UserRequest userRequest, @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            ResponseModel<?> responseModel = userService.createUser(userRequest, userDetails);
-            if (responseModel.getData() != null) {
-                UserResponse userResponse = modelMapper.map(responseModel.getData(), UserResponse.class);
-                return new ResponseModel<UserResponse>().success(ResponseEnum.CREATED.getStatus(),"Entity Created Successfully" ,userResponse);
-            } else {
-                return new ResponseModel<UserResponse>().failed(responseModel.getStatus(), responseModel.getMessage(), null);
-            }
-        } catch (GeneralException e) {
-            log.error("Error creating User: {}", e.getMessage());
-            return new ResponseModel<UserResponse>().failed(e.getHttpStatus().value(), e.getMessage(), null);
-        }
+        return userService.createUser(userRequest, userDetails);
+    }
+
+    @GetMapping("/paged")
+    @PreAuthorize("hasRole('USER_VIEW')")
+    public ResponseModel<PageResponse<UserResponse>> getAllUsers(
+            Pageable pageable,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "email", required = false) String email,
+            @RequestParam(name = "phone", required = false) String phone) {
+
+        return userService.getAllUsers(pageable, userDetails, name, email, phone);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseModel<?> handleException(Exception e) {
         log.error("Exception occurred: {}", e.getMessage());
         if (e.getClass().getSimpleName().equalsIgnoreCase("AccessDeniedException")) {
-            return new ResponseModel<>().failed(ResponseEnum.FORBIDDEN.getStatus(), "AccessDenied", null);
+            return new ResponseModel<>().failed(ResponseEnum.FORBIDDEN.getStatus(), "AccessDenied");
         } else {
-            return new ResponseModel<>().failed(ResponseEnum.INTERNAL_SERVER_ERROR.getStatus(), e.getMessage(), null);
+            return new ResponseModel<>().failed(ResponseEnum.INTERNAL_SERVER_ERROR.getStatus(), e.getMessage());
         }
     }
 }
