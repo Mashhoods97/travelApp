@@ -21,7 +21,16 @@ public interface UserRepo extends JpaRepository<User,Long> {
 
     Optional<User> findOptionalByUsernameAndArchive(String username, boolean b);
 
-    boolean existsByEmailAndArchive(String email, boolean b);
+    boolean existsByEmailAndArchiveFalse(String email);
+
+    boolean existsByUsernameAndArchiveFalse(String username);
+
+    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN TRUE ELSE FALSE END " +
+            "FROM User e " +
+            "WHERE e.archive = false and " +
+            "LOWER(TRIM(e.email)) = LOWER(TRIM(:email)) AND " +
+            "e.id <> :id")
+    boolean existsByEmailAndIdNot(@Param("email") String email, @Param("id") Long id);
 
     Optional<User> findOptionalByUsernameAndActive(String name, boolean b);
 
@@ -34,4 +43,6 @@ public interface UserRepo extends JpaRepository<User,Long> {
                                           @Param("email") String email,
                                           @Param("phone") String phone,
                                           Pageable pageable);
+
+    Optional<User> findOptionalByIdAndArchiveFalse(Long id);
 }

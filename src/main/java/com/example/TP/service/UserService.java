@@ -16,10 +16,12 @@ import com.example.TP.utils.Constants;
 import com.example.TP.utils.GeneralException;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -55,8 +57,13 @@ public class UserService {
                     });
 
             // 2. Check email uniqueness
-            if (userRepo.existsByEmailAndArchive(entity.getEmail(), false)) {
+            if (userRepo.existsByEmailAndArchiveFalse(entity.getEmail())) {
                 log.warn("Duplicate email: {}", entity.getEmail());
+                return conflictResponse();
+            }
+            // 2. Check username uniqueness
+            if (userRepo.existsByUsernameAndArchiveFalse(entity.getUsername())) {
+                log.warn("Duplicate username: {}", entity.getUsername());
                 return conflictResponse();
             }
 
@@ -99,6 +106,56 @@ public class UserService {
         }
     }
 
+    public ResponseModel<?> updateUser(UserRequest entity, Long id, UserDetails userDetails) {
+        try {
+            // 1. Validate requesting user exists
+            User creator = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false)
+                    .orElseThrow(() -> {
+                        log.error("Access Denied - User not found: {}", userDetails.getUsername());
+                        return new SecurityException("Access Denied - User not found");
+                    });
+
+            // 2. Check email uniqueness
+            if (userRepo.existsByEmailAndIdNot(entity.getEmail(), id)) {
+                log.warn("Duplicate email: {}", entity.getEmail());
+                return conflictResponse();
+            }
+
+            // 3. Validate role hierarchy
+            try {
+                verifyCreateUserRequest(entity.getType(), userDetails);
+            } catch (SecurityException ex) {
+                return forbiddenResponse(ex.getMessage());
+            }
+
+            User entityBefore = userRepo.findOptionalByIdAndArchiveFalse(id)
+                    .orElseThrow(() -> {
+                        log.error("Entity with ID '{}' not found for updating by user '{}'", id, userDetails.getUsername());
+                        return new GeneralException("Error updating entity :: Entity not found for updating.", HttpStatus.NOT_FOUND);
+                    });
+
+            User user = modelMapper.map(entity, User.class);
+            BeanUtils.copyProperties(user, entityBefore, "id", "createdBy", "updatedBy", "updatedAt", "createdAt", "businessId", "password");
+
+            userRepo.save(entityBefore);
+            UserResponse response = modelMapper.map(entityBefore, UserResponse.class);
+
+            log.info("User updated by {} (ID: {}) - user ID: {}",
+                    creator.getUsername(), creator.getId(), entityBefore.getId());
+
+            return successResponse(response);
+
+        } catch (SecurityException e) {
+            log.warn("Security violation: {}", e.getMessage());
+            return forbiddenResponse(e.getMessage());
+        } catch (GeneralException e) {
+            log.error("Business error: {}", e.getMessage());
+            return new ResponseModel<UserResponse>().failed(e.getHttpStatus().value(), e.getMessage());
+        } catch (Exception e) {
+            log.error("System error: {}", e.getMessage(), e);
+            return internalErrorResponse();
+        }
+    }
 
     public ResponseModel<PageResponse<UserResponse>> getAllUsers(Pageable pageable,
                                                                  UserDetails userDetails,
@@ -135,7 +192,7 @@ public class UserService {
             log.info("Users retrieved by user '{}' with business ID '{}'",
                     userDetails.getUsername(), currentUser.getBusinessId());
 
-            return ResponseModel.successPage(ResponseEnum.FOUND.getStatus(),"Entities Retrieved Successfully", userResponsePage);
+            return ResponseModel.successPage(ResponseEnum.FOUND.getStatus(), "Entities Retrieved Successfully", userResponsePage);
 
         } catch (DataAccessException e) {
             log.error("DataAccessException occurred during user retrieval: {}", e.getMessage());

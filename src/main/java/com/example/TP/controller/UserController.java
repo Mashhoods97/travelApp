@@ -30,6 +30,12 @@ public class UserController {
         return userService.createUser(userRequest, userDetails);
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('USER_UPDATE')")
+    public ResponseModel<?> update(@RequestBody UserRequest userRequest, @PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        return userService.updateUser(userRequest, id, userDetails);
+    }
+
     @GetMapping("/paged")
     @PreAuthorize("hasRole('USER_VIEW')")
     public ResponseModel<PageResponse<UserResponse>> getAllUsers(
