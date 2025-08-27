@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.Map;
 
 @Entity
-@Table(name = "destinations")
+@Table(name = "hotels")
 @Getter
 @Setter
 @NoArgsConstructor

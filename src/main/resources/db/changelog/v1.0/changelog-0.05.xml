@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+
+    <changeSet id="changelog-0.05-create-itinerary-table" author="mashhood">
+        <createTable tableName="itineraries">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="package_id" type="bigint"/>
+            <column name="day_number" type="integer"/>
+            <column name="description" type="TEXT"/>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="meals_include" type="boolean" defaultValueBoolean="true"/>
+            <column name="accommodation" type="boolean" defaultValueBoolean="true"/>
+            <column name="sightseeing" type="boolean" defaultValueBoolean="true"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="changelog-0.04-create-pricing-table" author="mashhood">
+        <createTable tableName="pricings">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="package_id" type="bigint"/>
+            <column name="base_price" type="DECIMAL(38,2)"/>
+            <column name="discount_price" type="DECIMAL(38,2)"/>
+            <column name="infant_price" type="DECIMAL(38,2)"/>
+            <column name="currency" type="VARCHAR(50)"/>
+            <column name="tax_percentage" type="DECIMAL(38,2)"/>
+            <column name="valid_from" type="timestamp"/>
+            <column name="valid_to" type="timestamp"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="changelog-0.04-create-package-table" author="mashhood">
+        <createTable tableName="packages">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(255)"/>
+            <column name="description" type="TEXT"/>
+            <column name="duration_days" type="bigint"/>
+            <column name="duration_nights" type="bigint"/>
+            <column name="type" type="bigint"/>
+            <column name="valid_from" type="timestamp"/>
+            <column name="valid_to" type="timestamp"/>
+            <column name="destination_id" type="bigint"/>
+            <column name="hotel_id" type="bigint"/>
+            <column name="active" type="boolean" defaultValueBoolean="true"/>
+            <column name="archive" type="boolean" defaultValueBoolean="false"/>
+            <column name="archived_by" type="bigint"/>
+            <column name="archived_at" type="timestamp"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="bigint"/>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="bigint"/>
+            <column name="business_id" type="bigint"/>
+            <column name="attributes" type="json">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
