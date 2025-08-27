@@ -33,8 +33,8 @@ public class Itinerary {
     @Column(name = "meals_include")
     private Boolean mealsInclude;
 
-    @Column(name = "accomodation")
-    private Boolean accomodation;
+    @Column(name = "accommodation")
+    private Boolean accommodation;
 
     @Column(name = "sightseeing")
     private Boolean sightseeing;
