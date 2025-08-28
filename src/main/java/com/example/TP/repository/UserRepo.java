@@ -44,5 +44,5 @@ public interface UserRepo extends JpaRepository<User,Long> {
                                           @Param("phone") String phone,
                                           Pageable pageable);
 
-    Optional<User> findOptionalByIdAndArchiveFalse(Long id);
+    Optional<User> findOptionalByBusinessIdAndIdAndArchiveFalse(Long businessId, Long id);
 }

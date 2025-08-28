@@ -129,7 +129,7 @@ public class UserService {
                 return forbiddenResponse(ex.getMessage());
             }
 
-            User entityBefore = userRepo.findOptionalByIdAndArchiveFalse(id)
+            User entityBefore = userRepo.findOptionalByBusinessIdAndIdAndArchiveFalse(creator.getBusinessId(), id)
                     .orElseThrow(() -> {
                         log.error("Entity with ID '{}' not found for updating by user '{}'", id, userDetails.getUsername());
                         return new GeneralException("Error updating entity :: Entity not found for updating.", HttpStatus.NOT_FOUND);
@@ -168,7 +168,7 @@ public class UserService {
                         return new SecurityException("Access Denied - User not found");
                     });
 
-            User entityBefore = userRepo.findOptionalByIdAndArchiveFalse(id)
+            User entityBefore = userRepo.findOptionalByBusinessIdAndIdAndArchiveFalse(creator.getBusinessId(), id)
                     .orElseThrow(() -> {
                         log.error("Entity with ID '{}' not found for updating by user '{}'", id, userDetails.getUsername());
                         return new GeneralException("Error updating entity :: Entity not found for updating.", HttpStatus.NOT_FOUND);
