@@ -49,6 +49,13 @@ public class PackageController {
         return packageService.getAllPackages(pageable, userDetails, name, code);
     }
 
+    @GetMapping("/get")
+    public ResponseModel<?> getPackagesMap(
+            @RequestParam(required = false) String name,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return packageService.getPackagesIdNameMap(userDetails, name);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseModel<?> handleException(Exception e) {
         log.error("Exception occurred: {}", e.getMessage());

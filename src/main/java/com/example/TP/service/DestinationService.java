@@ -4,11 +4,9 @@ import com.example.TP.enums.ResponseEnum;
 import com.example.TP.model.Destination;
 import com.example.TP.model.User;
 import com.example.TP.payload.request.DestinationRequest;
-import com.example.TP.payload.request.UserRequest;
 import com.example.TP.payload.response.DestinationResponse;
 import com.example.TP.payload.response.PageResponse;
 import com.example.TP.payload.response.ResponseModel;
-import com.example.TP.payload.response.UserResponse;
 import com.example.TP.repository.DestinationRepo;
 import com.example.TP.repository.UserRepo;
 import com.example.TP.utils.GeneralException;
@@ -24,7 +22,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -191,6 +192,38 @@ public class DestinationService {
         } catch (GeneralException e) {
             log.error("GeneralException: {}", e.getMessage());
             return ResponseModel.failedPage(e.getHttpStatus().value(), e.getMessage());
+        }
+    }
+
+    public ResponseModel<?> getDestinationsIdNameMap(UserDetails userDetails, String nameSearch) {
+        try {
+            // 1. Validate requesting user exists
+            User creator = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false)
+                    .orElseThrow(() -> {
+                        log.error("Access Denied - User not found: {}", userDetails.getUsername());
+                        return new SecurityException("Access Denied - User not found");
+                    });
+
+            List<Destination> destinations;
+
+            if (nameSearch != null && !nameSearch.trim().isEmpty()) {
+                destinations = destinationRepo.findByBusinessIdAndNameContainingIgnoreCaseAndArchiveFalse(creator.getBusinessId(), nameSearch.trim());
+            } else {
+                destinations = destinationRepo.findByBusinessIdAndArchiveFalse(creator.getBusinessId());
+            }
+
+            Map<Long, String> destinationsMap = destinations.stream()
+                    .collect(Collectors.toMap(
+                            Destination::getId,
+                            Destination::getName,
+                            (existing, replacement) -> existing
+                    ));
+
+            return new ResponseModel<>().success(ResponseEnum.CREATED.getStatus(), destinationsMap);
+
+        } catch (Exception e) {
+            log.error("Error retrieving destinations map: {}", e.getMessage(), e);
+            return new ResponseModel<>().failed(ResponseEnum.INTERNAL_SERVER_ERROR.getStatus(), "Failed to retrieve destinations");
         }
     }
 

@@ -51,6 +51,13 @@ public class DestinationController {
         return destinationService.getAllDestinations(pageable, userDetails, name, country, slug);
     }
 
+    @GetMapping("/get")
+    public ResponseModel<?> getDestinationsMap(
+            @RequestParam(required = false) String name,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return destinationService.getDestinationsIdNameMap(userDetails, name);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseModel<?> handleException(Exception e) {
         log.error("Exception occurred: {}", e.getMessage());

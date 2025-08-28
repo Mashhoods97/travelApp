@@ -49,6 +49,13 @@ public class HotelController {
         return hotelService.getAllHotels(pageable, userDetails, name, slug);
     }
 
+    @GetMapping("/get")
+    public ResponseModel<?> getHotelsMap(
+            @RequestParam(required = false) String name,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return hotelService.getHotelsIdNameMap(userDetails, name);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseModel<?> handleException(Exception e) {
         log.error("Exception occurred: {}", e.getMessage());

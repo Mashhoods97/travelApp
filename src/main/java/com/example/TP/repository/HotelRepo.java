@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -21,4 +22,8 @@ public interface HotelRepo extends JpaRepository<Hotel, Long> {
                                                  @Param("name") String name,
                                                  @Param("slug") String slug,
                                                  Pageable pageable);
+
+    List<Hotel> findByBusinessIdAndNameContainingIgnoreCaseAndArchiveFalse(long businessId, String name);
+
+    List<Hotel> findByBusinessIdAndArchiveFalse(long businessId);
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -23,4 +24,8 @@ public interface DestinationRepo extends JpaRepository<Destination,Long> {
                                           @Param("country") String country,
                                           @Param("slug") String slug,
                                           Pageable pageable);
+
+    List<Destination> findByBusinessIdAndNameContainingIgnoreCaseAndArchiveFalse(long businessId, String trim);
+
+    List<Destination> findByBusinessIdAndArchiveFalse(long businessId);
 }

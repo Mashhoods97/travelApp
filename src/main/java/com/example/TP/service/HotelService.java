@@ -22,7 +22,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -185,6 +188,38 @@ public class HotelService {
         } catch (GeneralException e) {
             log.error("GeneralException: {}", e.getMessage());
             return ResponseModel.failedPage(e.getHttpStatus().value(), e.getMessage());
+        }
+    }
+
+    public ResponseModel<?> getHotelsIdNameMap(UserDetails userDetails, String nameSearch) {
+        try {
+            // 1. Validate requesting user exists
+            User creator = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false)
+                    .orElseThrow(() -> {
+                        log.error("Access Denied - User not found: {}", userDetails.getUsername());
+                        return new SecurityException("Access Denied - User not found");
+                    });
+
+            List<Hotel> hotels;
+
+            if (nameSearch != null && !nameSearch.trim().isEmpty()) {
+                hotels = hotelRepo.findByBusinessIdAndNameContainingIgnoreCaseAndArchiveFalse(creator.getBusinessId(), nameSearch.trim());
+            } else {
+                hotels = hotelRepo.findByBusinessIdAndArchiveFalse(creator.getBusinessId());
+            }
+
+            Map<Long, String> hotelsMap = hotels.stream()
+                    .collect(Collectors.toMap(
+                            Hotel::getId,
+                            Hotel::getName,
+                            (existing, replacement) -> existing
+                    ));
+
+            return new ResponseModel<>().success(ResponseEnum.CREATED.getStatus(), hotelsMap);
+
+        } catch (Exception e) {
+            log.error("Error retrieving hotels map: {}", e.getMessage(), e);
+            return new ResponseModel<>().failed(ResponseEnum.INTERNAL_SERVER_ERROR.getStatus(), "Failed to retrieve hotels");
         }
     }
 

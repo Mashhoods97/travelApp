@@ -22,7 +22,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -185,6 +188,38 @@ public class PackageService {
         } catch (GeneralException e) {
             log.error("GeneralException: {}", e.getMessage());
             return ResponseModel.failedPage(e.getHttpStatus().value(), e.getMessage());
+        }
+    }
+
+    public ResponseModel<?> getPackagesIdNameMap(UserDetails userDetails, String nameSearch) {
+        try {
+            // 1. Validate requesting user exists
+            User creator = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false)
+                    .orElseThrow(() -> {
+                        log.error("Access Denied - User not found: {}", userDetails.getUsername());
+                        return new SecurityException("Access Denied - User not found");
+                    });
+
+            List<Package> packages;
+
+            if (nameSearch != null && !nameSearch.trim().isEmpty()) {
+                packages = packageRepo.findByBusinessIdAndNameContainingIgnoreCaseAndArchiveFalse(creator.getBusinessId(), nameSearch.trim());
+            } else {
+                packages = packageRepo.findByBusinessIdAndArchiveFalse(creator.getBusinessId());
+            }
+
+            Map<Long, String> packagesMap = packages.stream()
+                    .collect(Collectors.toMap(
+                            Package::getId,
+                            Package::getName,
+                            (existing, replacement) -> existing
+                    ));
+
+            return new ResponseModel<>().success(ResponseEnum.CREATED.getStatus(), packagesMap);
+
+        } catch (Exception e) {
+            log.error("Error retrieving packages map: {}", e.getMessage(), e);
+            return new ResponseModel<>().failed(ResponseEnum.INTERNAL_SERVER_ERROR.getStatus(), "Failed to retrieve packages");
         }
     }
 
