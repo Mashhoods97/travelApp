@@ -88,10 +88,9 @@ public class DestinationService {
                         return new GeneralException("Error updating entity :: Entity not found for updating.", HttpStatus.NOT_FOUND);
                     });
 
-            Destination destination = modelMapper.map(entityBefore, Destination.class);
-            DestinationResponse response = modelMapper.map(destination, DestinationResponse.class);
+            DestinationResponse response = modelMapper.map(entityBefore, DestinationResponse.class);
 
-            log.info("Destination updated by {} (ID: {}) - Destination ID: {}",
+            log.info("Destination retrieved by {} (ID: {}) - Destination ID: {}",
                     creator.getUsername(), creator.getId(), entityBefore.getId());
 
             return successResponse(response);

@@ -27,7 +27,11 @@ public class HotelController {
     public ResponseModel<?> create(@RequestBody HotelRequest hotelRequest, @AuthenticationPrincipal UserDetails userDetails) {
         return hotelService.createHotel(hotelRequest, userDetails);
     }
-
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('USER_UPDATE')")
+    public ResponseModel<?> getById(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        return hotelService.getById(id, userDetails);
+    }
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('USER_UPDATE')")
     public ResponseModel<?> update(@RequestBody HotelRequest hotelRequest, @PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {

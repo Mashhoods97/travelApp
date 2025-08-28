@@ -1,9 +1,11 @@
 package com.example.TP.service;
 
 import com.example.TP.enums.ResponseEnum;
+import com.example.TP.model.Destination;
 import com.example.TP.model.Hotel;
 import com.example.TP.model.User;
 import com.example.TP.payload.request.HotelRequest;
+import com.example.TP.payload.response.DestinationResponse;
 import com.example.TP.payload.response.HotelResponse;
 import com.example.TP.payload.response.PageResponse;
 import com.example.TP.payload.response.ResponseModel;
@@ -70,6 +72,40 @@ public class HotelService {
         }
     }
 
+    public ResponseModel<?> getById(Long id, UserDetails userDetails) {
+        try {
+            // 1. Validate requesting user exists
+            User creator = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false)
+                    .orElseThrow(() -> {
+                        log.error("Access Denied - User not found: {}", userDetails.getUsername());
+                        return new SecurityException("Access Denied - User not found");
+                    });
+
+
+            Hotel entityBefore = hotelRepo.findOptionalByBusinessIdAndIdAndArchiveFalse(creator.getBusinessId(), id)
+                    .orElseThrow(() -> {
+                        log.error("Entity with ID '{}' not found for updating by user '{}'", id, userDetails.getUsername());
+                        return new GeneralException("Error updating entity :: Entity not found for updating.", HttpStatus.NOT_FOUND);
+                    });
+
+            HotelResponse response = modelMapper.map(entityBefore, HotelResponse.class);
+
+            log.info("Hotel retrieved by {} (ID: {}) - Hotel ID: {}",
+                    creator.getUsername(), creator.getId(), entityBefore.getId());
+
+            return successResponse(response);
+
+        } catch (SecurityException e) {
+            log.warn("Security violation: {}", e.getMessage());
+            return forbiddenResponse(e.getMessage());
+        } catch (GeneralException e) {
+            log.error("Business error: {}", e.getMessage());
+            return new ResponseModel<DestinationResponse>().failed(e.getHttpStatus().value(), e.getMessage());
+        } catch (Exception e) {
+            log.error("System error: {}", e.getMessage(), e);
+            return internalErrorResponse();
+        }
+    }
     public ResponseModel<?> updateHotel(HotelRequest entity, Long id, UserDetails userDetails) {
         try {
             // 1. Validate requesting user exists
@@ -86,7 +122,7 @@ public class HotelService {
                     });
 
             Hotel hotel = modelMapper.map(entity, Hotel.class);
-            BeanUtils.copyProperties(hotel, entityBefore, "id", "createdBy", "updatedBy", "updatedAt", "createdAt", "businessId", "password");
+            BeanUtils.copyProperties(hotel, entityBefore, "id", "createdBy", "updatedBy", "updatedAt", "createdAt", "businessId");
 
             entityBefore.setUpdatedBy(creator.getId());
             hotelRepo.save(entityBefore);
