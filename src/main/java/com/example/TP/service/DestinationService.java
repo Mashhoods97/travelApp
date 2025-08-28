@@ -9,6 +9,7 @@ import com.example.TP.payload.response.PageResponse;
 import com.example.TP.payload.response.ResponseModel;
 import com.example.TP.repository.DestinationRepo;
 import com.example.TP.repository.UserRepo;
+import com.example.TP.utils.BeanUtilsCustom;
 import com.example.TP.utils.GeneralException;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
@@ -48,6 +49,7 @@ public class DestinationService {
                     });
 
             Destination destination = modelMapper.map(entity, Destination.class);
+            BeanUtilsCustom.copySelectedProperties(creator, destination, "businessId");
 
             // 7. Save and prepare response
             Destination savedDestination = destinationRepo.save(destination);
@@ -55,6 +57,42 @@ public class DestinationService {
 
             log.info("Destination created by {} (ID: {}) - New Destination ID: {}",
                     creator.getUsername(), creator.getId(), savedDestination.getId());
+
+            return successResponse(response);
+
+        } catch (SecurityException e) {
+            log.warn("Security violation: {}", e.getMessage());
+            return forbiddenResponse(e.getMessage());
+        } catch (GeneralException e) {
+            log.error("Business error: {}", e.getMessage());
+            return new ResponseModel<DestinationResponse>().failed(e.getHttpStatus().value(), e.getMessage());
+        } catch (Exception e) {
+            log.error("System error: {}", e.getMessage(), e);
+            return internalErrorResponse();
+        }
+    }
+
+    public ResponseModel<?> getById(Long id, UserDetails userDetails) {
+        try {
+            // 1. Validate requesting user exists
+            User creator = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false)
+                    .orElseThrow(() -> {
+                        log.error("Access Denied - User not found: {}", userDetails.getUsername());
+                        return new SecurityException("Access Denied - User not found");
+                    });
+
+
+            Destination entityBefore = destinationRepo.findOptionalByBusinessIdAndIdAndArchiveFalse(creator.getBusinessId(), id)
+                    .orElseThrow(() -> {
+                        log.error("Entity with ID '{}' not found for updating by user '{}'", id, userDetails.getUsername());
+                        return new GeneralException("Error updating entity :: Entity not found for updating.", HttpStatus.NOT_FOUND);
+                    });
+
+            Destination destination = modelMapper.map(entityBefore, Destination.class);
+            DestinationResponse response = modelMapper.map(destination, DestinationResponse.class);
+
+            log.info("Destination updated by {} (ID: {}) - Destination ID: {}",
+                    creator.getUsername(), creator.getId(), entityBefore.getId());
 
             return successResponse(response);
 
@@ -129,12 +167,12 @@ public class DestinationService {
             entityBefore.setArchivedBy(creator.getId());
             entityBefore.setArchivedAt(new Date());
             destinationRepo.save(entityBefore);
-            DestinationResponse response = modelMapper.map(entityBefore, DestinationResponse.class);
+
 
             log.info("Destination archived by {} (ID: {}) - Destination ID: {}",
                     creator.getUsername(), creator.getId(), entityBefore.getId());
 
-            return successResponse(response);
+            return new ResponseModel<>().success(ResponseEnum.OK.getStatus(), null);
 
         } catch (SecurityException e) {
             log.warn("Security violation: {}", e.getMessage());
@@ -177,10 +215,10 @@ public class DestinationService {
                     pageable
             );
 
-            // Convert to UserResponse using ModelMapper
+            // Convert to DestinationResponse using ModelMapper
             Page<DestinationResponse> destinationsResponsePage = destinationsPage.map(destination -> modelMapper.map(destination, DestinationResponse.class));
 
-            log.info("Users retrieved by user '{}' with business ID '{}'",
+            log.info("Destinations retrieved by user '{}' with business ID '{}'",
                     userDetails.getUsername(), currentUser.getBusinessId());
 
             return ResponseModel.successPage(ResponseEnum.FOUND.getStatus(), "Entities Retrieved Successfully", destinationsResponsePage);

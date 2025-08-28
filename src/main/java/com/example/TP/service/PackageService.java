@@ -9,6 +9,7 @@ import com.example.TP.payload.response.PageResponse;
 import com.example.TP.payload.response.ResponseModel;
 import com.example.TP.repository.PackageRepo;
 import com.example.TP.repository.UserRepo;
+import com.example.TP.utils.BeanUtilsCustom;
 import com.example.TP.utils.GeneralException;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
@@ -47,7 +48,7 @@ public class PackageService {
                     });
 
             Package aPackage = modelMapper.map(entity, Package.class);
-
+            BeanUtilsCustom.copySelectedProperties(creator, aPackage, "businessId");
             // 7. Save and prepare response
             Package savedPackage = packageRepo.save(aPackage);
             PackageResponse response = modelMapper.map(savedPackage, PackageResponse.class);

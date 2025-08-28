@@ -9,6 +9,7 @@ import com.example.TP.payload.response.PageResponse;
 import com.example.TP.payload.response.ResponseModel;
 import com.example.TP.repository.HotelRepo;
 import com.example.TP.repository.UserRepo;
+import com.example.TP.utils.BeanUtilsCustom;
 import com.example.TP.utils.GeneralException;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
@@ -47,7 +48,7 @@ public class HotelService {
                     });
 
             Hotel hotel = modelMapper.map(entity, Hotel.class);
-
+            BeanUtilsCustom.copySelectedProperties(creator, hotel, "businessId");
             // 7. Save and prepare response
             Hotel savedHotel = hotelRepo.save(hotel);
             HotelResponse response = modelMapper.map(savedHotel, HotelResponse.class);

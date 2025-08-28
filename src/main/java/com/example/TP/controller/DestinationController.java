@@ -29,6 +29,12 @@ public class DestinationController {
         return destinationService.createDestination(destinationRequest, userDetails);
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('USER_UPDATE')")
+    public ResponseModel<?> getById(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        return destinationService.getById(id, userDetails);
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('USER_UPDATE')")
     public ResponseModel<?> update(@RequestBody DestinationRequest destinationRequest, @PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {

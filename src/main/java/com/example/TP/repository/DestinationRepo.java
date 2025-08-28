@@ -17,7 +17,7 @@ public interface DestinationRepo extends JpaRepository<Destination,Long> {
 
     @Query("SELECT u FROM Destination u WHERE u.businessId = :businessId AND u.archive = false " +
             "AND (:name IS NULL OR LOWER(u.name) LIKE CONCAT('%', LOWER(:name), '%')) " +
-            "AND (:email IS NULL OR LOWER(u.country) LIKE CONCAT('%', LOWER(:country), '%')) " +
+            "AND (:country IS NULL OR LOWER(u.country) LIKE CONCAT('%', LOWER(:country), '%')) " +
             "AND (:slug IS NULL OR u.slug LIKE CONCAT('%', :slug, '%'))")
     Page<Destination> findByBusinessIdAndFilters(@Param("businessId") Long businessId,
                                           @Param("name") String name,
