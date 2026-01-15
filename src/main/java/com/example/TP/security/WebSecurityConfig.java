@@ -97,7 +97,7 @@ public class WebSecurityConfig {
 
         // Allow requests from your frontend (add all environments)
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3002"    // React default
+                "http://localhost:3007"    // React default
         ));
 
         // Allow all common HTTP methods including OPTIONS for preflight
