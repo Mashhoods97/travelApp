@@ -95,42 +95,27 @@ public class WebSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allow requests from your frontend (add all environments)
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3007"    // React default
-        ));
+        // Allow ALL origins (no frontend restriction)
+        configuration.setAllowedOriginPatterns(List.of("*"));
 
-        // Allow all common HTTP methods including OPTIONS for preflight
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
+        // Allow all HTTP methods
+        configuration.setAllowedMethods(List.of("*"));
 
-        // Allow all headers including authorization
-        configuration.setAllowedHeaders(Arrays.asList(
+        // Allow all headers (including Authorization)
+        configuration.setAllowedHeaders(List.of("*"));
+
+        // Expose commonly used headers
+        configuration.setExposedHeaders(List.of(
                 "Authorization",
-                "Content-Type",
-                "Accept",
-                "Origin",
-                "X-Requested-With",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers",
-                "Cache-Control",
-                "x-auth-token"
+                "Content-Disposition"
         ));
 
-        // Expose headers that frontend might need to read
-        configuration.setExposedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "Content-Disposition",
-                "x-auth-token"
-        ));
+        // IMPORTANT: must be false when allowing all origins
+        configuration.setAllowCredentials(false);
 
-        // Allow credentials (cookies, authorization headers)
-        configuration.setAllowCredentials(true);
-
-        // Set max age for preflight response caching (1 hour)
+        // Cache preflight response for 1 hour
         configuration.setMaxAge(3600L);
 
-        // Apply this configuration to all paths
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
