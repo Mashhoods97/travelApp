@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 @Data
 public class QuotationRequest extends BaseRequest{
-    private Long title;
+    private String title;
     private Long packageId;
     private Long userId;
     private Long customerId;
