@@ -1,7 +1,6 @@
 package com.example.TP.service;
 
 import com.example.TP.enums.ResponseEnum;
-import com.example.TP.model.Destination;
 import com.example.TP.model.Hotel;
 import com.example.TP.model.User;
 import com.example.TP.payload.request.HotelRequest;

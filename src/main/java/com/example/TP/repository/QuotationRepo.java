@@ -16,7 +16,7 @@ public interface QuotationRepo extends JpaRepository<Quotation, Long> {
     Optional<Quotation> findOptionalByBusinessIdAndIdAndArchiveFalse(long businessId, Long id);
 
     @Query("SELECT u FROM Quotation u WHERE u.businessId = :businessId AND u.archive = false " +
-            "AND (:name IS NULL OR LOWER(u.title) LIKE CONCAT('%', LOWER(:name), '%')) ")
+            "AND (:title IS NULL OR LOWER(u.title) LIKE CONCAT('%', LOWER(:title), '%')) ")
     Page<Quotation> findByBusinessIdAndFilters(@Param("businessId") Long businessId,
                                            @Param("title") String title,
                                            Pageable pageable);

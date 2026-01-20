@@ -10,6 +10,7 @@ public class QuotationResponse extends BaseResponse {
     private Long packageId;
     private Long userId;
     private Long customerId;
+    private String customerName;
     private Date bookingDate;
     private Date travelDate;
     private int paxCount;

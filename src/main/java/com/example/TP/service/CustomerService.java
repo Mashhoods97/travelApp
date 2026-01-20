@@ -2,15 +2,13 @@ package com.example.TP.service;
 
 import com.example.TP.enums.ResponseEnum;
 import com.example.TP.model.Customer;
-import com.example.TP.model.Quotation;
 import com.example.TP.model.User;
-import com.example.TP.payload.request.QuotationRequest;
+import com.example.TP.payload.request.CustomerRequest;
 import com.example.TP.payload.response.DestinationResponse;
-import com.example.TP.payload.response.QuotationResponse;
+import com.example.TP.payload.response.CustomerResponse;
 import com.example.TP.payload.response.PageResponse;
 import com.example.TP.payload.response.ResponseModel;
 import com.example.TP.repository.CustomerRepo;
-import com.example.TP.repository.QuotationRepo;
 import com.example.TP.repository.UserRepo;
 import com.example.TP.utils.BeanUtilsCustom;
 import com.example.TP.utils.GeneralException;
@@ -25,22 +23,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @Log4j2
-public class QuotationService {
+public class CustomerService {
     @Autowired
     private UserRepo userRepo;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
-    private QuotationRepo quotationRepo;
-    @Autowired
     private CustomerRepo customerRepo;
 
-    public ResponseModel<?> createQuotation(QuotationRequest entity, UserDetails userDetails) {
+    public ResponseModel<?> createCustomer(CustomerRequest entity, UserDetails userDetails) {
         try {
             // 1. Validate requesting user exists
             User creator = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false)
@@ -49,14 +48,14 @@ public class QuotationService {
                         return new SecurityException("Access Denied - User not found");
                     });
 
-            Quotation quotation = modelMapper.map(entity, Quotation.class);
-            BeanUtilsCustom.copySelectedProperties(creator, quotation, "businessId");
+            Customer customer = modelMapper.map(entity, Customer.class);
+            BeanUtilsCustom.copySelectedProperties(creator, customer, "businessId");
             // 7. Save and prepare response
-            Quotation savedQuotation = quotationRepo.save(quotation);
-            QuotationResponse response = modelMapper.map(savedQuotation, QuotationResponse.class);
+            Customer savedCustomer = customerRepo.save(customer);
+            CustomerResponse response = modelMapper.map(savedCustomer, CustomerResponse.class);
 
-            log.info("Quotation created by {} (ID: {}) - New Quotation ID: {}",
-                    creator.getUsername(), creator.getId(), savedQuotation.getId());
+            log.info("Customer created by {} (ID: {}) - New Customer ID: {}",
+                    creator.getUsername(), creator.getId(), savedCustomer.getId());
 
             return successResponse(response);
 
@@ -65,7 +64,7 @@ public class QuotationService {
             return forbiddenResponse(e.getMessage());
         } catch (GeneralException e) {
             log.error("Business error: {}", e.getMessage());
-            return new ResponseModel<QuotationResponse>().failed(e.getHttpStatus().value(), e.getMessage());
+            return new ResponseModel<CustomerResponse>().failed(e.getHttpStatus().value(), e.getMessage());
         } catch (Exception e) {
             log.error("System error: {}", e.getMessage(), e);
             return internalErrorResponse();
@@ -82,19 +81,15 @@ public class QuotationService {
                     });
 
 
-            Quotation entityBefore = quotationRepo.findOptionalByBusinessIdAndIdAndArchiveFalse(creator.getBusinessId(), id)
+            Customer entityBefore = customerRepo.findOptionalByBusinessIdAndIdAndArchiveFalse(creator.getBusinessId(), id)
                     .orElseThrow(() -> {
                         log.error("Entity with ID '{}' not found for updating by user '{}'", id, userDetails.getUsername());
                         return new GeneralException("Error updating entity :: Entity not found for updating.", HttpStatus.NOT_FOUND);
                     });
 
-            QuotationResponse response = modelMapper.map(entityBefore, QuotationResponse.class);
-            Optional<Customer> customer = customerRepo.findOptionalByBusinessIdAndIdAndArchiveFalse(
-                    entityBefore.getBusinessId(), entityBefore.getCustomerId());
+            CustomerResponse response = modelMapper.map(entityBefore, CustomerResponse.class);
 
-            response.setCustomerName(customer.map(c -> c.getFirstName() + " - " + c.getLastName()).orElse(null));
-
-            log.info("Quotation retrieved by {} (ID: {}) - Quotation ID: {}",
+            log.info("Customer retrieved by {} (ID: {}) - Customer ID: {}",
                     creator.getUsername(), creator.getId(), entityBefore.getId());
 
             return successResponse(response);
@@ -110,8 +105,7 @@ public class QuotationService {
             return internalErrorResponse();
         }
     }
-
-    public ResponseModel<?> updateQuotation(QuotationRequest entity, Long id, UserDetails userDetails) {
+    public ResponseModel<?> updateCustomer(CustomerRequest entity, Long id, UserDetails userDetails) {
         try {
             // 1. Validate requesting user exists
             User creator = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false)
@@ -120,20 +114,20 @@ public class QuotationService {
                         return new SecurityException("Access Denied - User not found");
                     });
 
-            Quotation entityBefore = quotationRepo.findOptionalByBusinessIdAndIdAndArchiveFalse(creator.getBusinessId(), id)
+            Customer entityBefore = customerRepo.findOptionalByBusinessIdAndIdAndArchiveFalse(creator.getBusinessId(), id)
                     .orElseThrow(() -> {
                         log.error("Entity with ID '{}' not found for updating by user '{}'", id, userDetails.getUsername());
                         return new GeneralException("Error updating entity :: Entity not found for updating.", HttpStatus.NOT_FOUND);
                     });
 
-            Quotation quotation = modelMapper.map(entity, Quotation.class);
-            BeanUtils.copyProperties(quotation, entityBefore, "id", "createdBy", "updatedBy", "updatedAt", "createdAt", "businessId");
+            Customer customer = modelMapper.map(entity, Customer.class);
+            BeanUtils.copyProperties(customer, entityBefore, "id", "createdBy", "updatedBy", "updatedAt", "createdAt", "businessId");
 
             entityBefore.setUpdatedBy(creator.getId());
-            quotationRepo.save(entityBefore);
-            QuotationResponse response = modelMapper.map(entityBefore, QuotationResponse.class);
+            customerRepo.save(entityBefore);
+            CustomerResponse response = modelMapper.map(entityBefore, CustomerResponse.class);
 
-            log.info("Quotation updated by {} (ID: {}) - Quotation ID: {}",
+            log.info("Customer updated by {} (ID: {}) - Customer ID: {}",
                     creator.getUsername(), creator.getId(), entityBefore.getId());
 
             return successResponse(response);
@@ -143,14 +137,14 @@ public class QuotationService {
             return forbiddenResponse(e.getMessage());
         } catch (GeneralException e) {
             log.error("Business error: {}", e.getMessage());
-            return new ResponseModel<QuotationResponse>().failed(e.getHttpStatus().value(), e.getMessage());
+            return new ResponseModel<CustomerResponse>().failed(e.getHttpStatus().value(), e.getMessage());
         } catch (Exception e) {
             log.error("System error: {}", e.getMessage(), e);
             return internalErrorResponse();
         }
     }
 
-    public ResponseModel<?> archiveQuotation(Long id, UserDetails userDetails) {
+    public ResponseModel<?> archiveCustomer(Long id, UserDetails userDetails) {
         try {
             // 1. Validate requesting user exists
             User creator = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false)
@@ -159,7 +153,7 @@ public class QuotationService {
                         return new SecurityException("Access Denied - User not found");
                     });
 
-            Quotation entityBefore = quotationRepo.findOptionalByBusinessIdAndIdAndArchiveFalse(creator.getBusinessId(), id)
+            Customer entityBefore = customerRepo.findOptionalByBusinessIdAndIdAndArchiveFalse(creator.getBusinessId(), id)
                     .orElseThrow(() -> {
                         log.error("Entity with ID '{}' not found for updating by user '{}'", id, userDetails.getUsername());
                         return new GeneralException("Error updating entity :: Entity not found for updating.", HttpStatus.NOT_FOUND);
@@ -168,10 +162,10 @@ public class QuotationService {
             entityBefore.setArchive(true);
             entityBefore.setArchivedBy(creator.getId());
             entityBefore.setArchivedAt(new Date());
-            quotationRepo.save(entityBefore);
-            QuotationResponse response = modelMapper.map(entityBefore, QuotationResponse.class);
+            customerRepo.save(entityBefore);
+            CustomerResponse response = modelMapper.map(entityBefore, CustomerResponse.class);
 
-            log.info("Quotation archived by {} (ID: {}) - Quotation ID: {}",
+            log.info("Customer archived by {} (ID: {}) - Customer ID: {}",
                     creator.getUsername(), creator.getId(), entityBefore.getId());
 
             return successResponse(response);
@@ -181,67 +175,57 @@ public class QuotationService {
             return forbiddenResponse(e.getMessage());
         } catch (GeneralException e) {
             log.error("Business error: {}", e.getMessage());
-            return new ResponseModel<QuotationResponse>().failed(e.getHttpStatus().value(), e.getMessage());
+            return new ResponseModel<CustomerResponse>().failed(e.getHttpStatus().value(), e.getMessage());
         } catch (Exception e) {
             log.error("System error: {}", e.getMessage(), e);
             return internalErrorResponse();
         }
     }
 
-    public ResponseModel<PageResponse<QuotationResponse>> getAllQuotations(Pageable pageable, UserDetails userDetails, String title) {
+    public ResponseModel<PageResponse<CustomerResponse>> getAllCustomers(Pageable pageable,
+                                                                   UserDetails userDetails,
+                                                                   String name) {
         try {
             Optional<User> userOptional = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false);
-
             if (userOptional.isEmpty()) {
-                return ResponseModel.failedPage(ResponseEnum.FORBIDDEN.getStatus(), "Access Denied - User not found.");
+                log.error("Access Denied - User not found for username: {}", userDetails.getUsername());
+                return ResponseModel.failedPage(ResponseEnum.FORBIDDEN.getStatus(),
+                        "Access Denied - User not found.");
             }
 
             User currentUser = userOptional.get();
 
+            // Validate pagination
             if (pageable.getPageNumber() < 0 || pageable.getPageSize() < 1) {
                 throw new GeneralException("Invalid page number or page size", GeneralException.HTTP_BAD_REQUEST);
             }
 
-            Page<Quotation> quotationsPage = quotationRepo.findByBusinessIdAndFilters(currentUser.getBusinessId(),
-                    title != null ? title.toLowerCase() : null, pageable);
+            // Get filtered users from database
+            Page<Customer> customersPage = customerRepo.findByBusinessIdAndFilters(
+                    currentUser.getBusinessId(),
+                    name != null ? name.toLowerCase() : null,
+                    pageable
+            );
 
-            /* ---------- STEP 1: Collect customerIds ---------- */
-            Set<Long> customerIds = quotationsPage.getContent().stream()
-                    .map(Quotation::getCustomerId)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
+            // Convert to UserResponse using ModelMapper
+            Page<CustomerResponse> customersResponsePage = customersPage.map(customer -> modelMapper.map(customer, CustomerResponse.class));
 
-            /* ---------- STEP 2: Fetch customers in bulk ---------- */
-            Map<Long, Customer> customerMap = customerRepo
-                    .findByBusinessIdAndIdInAndArchiveFalse(currentUser.getBusinessId(), customerIds)
-                    .stream()
-                    .collect(Collectors.toMap(Customer::getId, c -> c));
+            log.info("Users retrieved by user '{}' with business ID '{}'",
+                    userDetails.getUsername(), currentUser.getBusinessId());
 
-            /* ---------- STEP 3: Map + enrich response ---------- */
-            Page<QuotationResponse> responsePage = quotationsPage.map(quotation -> {
-                QuotationResponse response = modelMapper.map(quotation, QuotationResponse.class);
-
-                Customer customer = customerMap.get(quotation.getCustomerId());
-                if (customer != null) {
-                    response.setCustomerName(customer.getFirstName() + " " + customer.getLastName()
-                    );
-                }
-
-                return response;
-            });
-
-            return ResponseModel.successPage(ResponseEnum.FOUND.getStatus(), "Entities Retrieved Successfully", responsePage);
+            return ResponseModel.successPage(ResponseEnum.FOUND.getStatus(), "Entities Retrieved Successfully", customersResponsePage);
 
         } catch (DataAccessException e) {
-            log.error("DB error: {}", e.getMessage(), e);
-            return ResponseModel.failedPage(ResponseEnum.INTERNAL_SERVER_ERROR.getStatus(), e.getMessage());
+            log.error("DataAccessException occurred during user retrieval: {}", e.getMessage());
+            return ResponseModel.failedPage(ResponseEnum.INTERNAL_SERVER_ERROR.getStatus(),
+                    "Error retrieving users: " + e.getMessage());
         } catch (GeneralException e) {
+            log.error("GeneralException: {}", e.getMessage());
             return ResponseModel.failedPage(e.getHttpStatus().value(), e.getMessage());
         }
     }
 
-
-    public ResponseModel<?> getQuotationsIdNameMap(UserDetails userDetails, String nameSearch) {
+    public ResponseModel<?> getCustomersIdNameMap(UserDetails userDetails, String nameSearch) {
         try {
             // 1. Validate requesting user exists
             User creator = userRepo.findOptionalByUsernameAndArchive(userDetails.getUsername(), false)
@@ -250,31 +234,31 @@ public class QuotationService {
                         return new SecurityException("Access Denied - User not found");
                     });
 
-            List<Quotation> quotations;
+            List<Customer> customers;
 
             if (nameSearch != null && !nameSearch.trim().isEmpty()) {
-                quotations = quotationRepo.findByBusinessIdAndTitleContainingIgnoreCaseAndArchiveFalse(creator.getBusinessId(), nameSearch.trim());
+                customers = customerRepo.findByBusinessIdAndFirstNameContainingIgnoreCaseAndArchiveFalse(creator.getBusinessId(), nameSearch.trim());
             } else {
-                quotations = quotationRepo.findByBusinessIdAndArchiveFalse(creator.getBusinessId());
+                customers = customerRepo.findByBusinessIdAndArchiveFalse(creator.getBusinessId());
             }
 
-            Map<Long, String> quotationsMap = quotations.stream()
+            Map<Long, String> customersMap = customers.stream()
                     .collect(Collectors.toMap(
-                            Quotation::getId,
-                            Quotation::getTitle,
+                            Customer::getId,
+                            Customer::getFirstName,
                             (existing, replacement) -> existing
                     ));
 
-            return new ResponseModel<>().success(ResponseEnum.CREATED.getStatus(), quotationsMap);
+            return new ResponseModel<>().success(ResponseEnum.CREATED.getStatus(), customersMap);
 
         } catch (Exception e) {
-            log.error("Error retrieving quotations map: {}", e.getMessage(), e);
-            return new ResponseModel<>().failed(ResponseEnum.INTERNAL_SERVER_ERROR.getStatus(), "Failed to retrieve quotations");
+            log.error("Error retrieving customers map: {}", e.getMessage(), e);
+            return new ResponseModel<>().failed(ResponseEnum.INTERNAL_SERVER_ERROR.getStatus(), "Failed to retrieve customers");
         }
     }
 
-    private ResponseModel<?> successResponse(QuotationResponse data) {
-        return new ResponseModel<QuotationResponse>().success(ResponseEnum.CREATED.getStatus(), data);
+    private ResponseModel<?> successResponse(CustomerResponse data) {
+        return new ResponseModel<CustomerResponse>().success(ResponseEnum.CREATED.getStatus(), data);
     }
 
     private ResponseModel<?> forbiddenResponse(String message) {
@@ -282,6 +266,6 @@ public class QuotationService {
     }
 
     private ResponseModel<?> internalErrorResponse() {
-        return new ResponseModel<>().failed(ResponseEnum.INTERNAL_SERVER_ERROR.getStatus(), "Failed to create Quotation");
+        return new ResponseModel<>().failed(ResponseEnum.INTERNAL_SERVER_ERROR.getStatus(), "Failed to create Customer");
     }
 }

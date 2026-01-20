@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
+    <changeSet id="changelog-0.06-create-quotation-table" author="mashhood">
+        <createTable tableName="quotations">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="varchar(255)"/>
+            <column name="package_id" type="bigint"/>
+            <column name="user_id" type="bigint"/>
+            <column name="customer_id" type="bigint"/>
+            <column name="booking_date" type="date"/>
+            <column name="travel_date" type="date"/>
+            <column name="pac_count" type="int"/>
+            <column name="total_price" type="decimal(19,2)"/>
+            <column name="status" type="int"/>
+            <column name="active" type="boolean" defaultValueBoolean="true"/>
+            <column name="archive" type="boolean" defaultValueBoolean="false"/>
+            <column name="archived_by" type="bigint"/>
+            <column name="archived_at" type="timestamp"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="bigint"/>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="bigint"/>
+            <column name="business_id" type="bigint"/>
+            <column name="attributes" type="json">
+            <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="changelog-0.06-create-customer-table" author="mashhood">
+        <createTable tableName="customers">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="first_name" type="varchar(255)"/>
+            <column name="last_name" type="varchar(255)"/>
+            <column name="email" type="varchar(255)"/>
+            <column name="address" type="text"/>
+            <column name="city" type="varchar(255)"/>
+            <column name="state" type="varchar(255)"/>
+            <column name="country" type="varchar(255)"/>
+            <column name="postal_code" type="varchar(50)"/>
+            <column name="phone" type="varchar(50)"/>
+            <column name="active" type="boolean" defaultValueBoolean="true"/>
+            <column name="archive" type="boolean" defaultValueBoolean="false"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_by" type="bigint"/>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" type="bigint"/>
+            <column name="business_id" type="bigint"/>
+            <column name="attributes" type="json">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
